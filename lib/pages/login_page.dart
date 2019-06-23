@@ -1,5 +1,5 @@
 import 'package:carros/domain/services/firebase_service.dart';
-import 'package:carros/domain/services/login_service.dart';
+import 'package:carros/pages/cadastro_page.dart';
 import 'package:carros/pages/home_page.dart';
 import 'package:carros/utils/alerts.dart';
 import 'package:carros/utils/nav.dart';
@@ -14,8 +14,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _tLogin = TextEditingController(text: "ricardo");
-  final _tSenha = TextEditingController(text: "123");
+  final _tLogin = TextEditingController(text: "ofsc@gmail.com");
+  final _tSenha = TextEditingController(text: "123456");
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -27,10 +27,10 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    FirebaseAuth.instance.currentUser().then((fUser){
+    FirebaseAuth.instance.currentUser().then((fUser) {
       setState(() {
         this.fUser = fUser;
-        if(fUser != null) {
+        if (fUser != null) {
           pushReplacement(context, HomePage());
         } else {
           showForm = true;
@@ -38,13 +38,13 @@ class _LoginPageState extends State<LoginPage> {
       });
     });
 
-    RemoteConfig.instance.then((remoteConfig){
+    RemoteConfig.instance.then((remoteConfig) {
       remoteConfig.setConfigSettings(RemoteConfigSettings(debugMode: true));
 
       try {
         remoteConfig.fetch(expiration: const Duration(minutes: 1));
         remoteConfig.activateFetched();
-      } catch(error) {
+      } catch (error) {
         print("Remote Config: $error");
       }
 
@@ -58,7 +58,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  fUser != null ?  Text("Carros ${fUser.displayName}") : Text("Carros"),
+        title: fUser != null
+            ? Text("Carros ${fUser.displayName}")
+            : Text("Carros"),
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
@@ -67,28 +69,8 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  String _validateLogin(String text) {
-    if (text.isEmpty) {
-      return "Informe o login";
-    }
-
-    return null;
-  }
-
-  String _validateSenha(String text) {
-    if (text.isEmpty) {
-      return "Informe a senha";
-    }
-    if (text.length <= 2) {
-      return "Senha precisa ter mais de 2 números";
-    }
-
-    return null;
-  }
-
   _body(BuildContext context) {
-
-    if(!showForm) {
+    if (!showForm) {
       return Container(
         child: Center(
           child: CircularProgressIndicator(),
@@ -109,12 +91,12 @@ class _LoginPageState extends State<LoginPage> {
               fontSize: 22,
             ),
             decoration: InputDecoration(
-              labelText: "Login",
+              labelText: "Email",
               labelStyle: TextStyle(
                 color: Colors.black,
                 fontSize: 22,
               ),
-              hintText: "Digite o seu login",
+              hintText: "Digite o seu email",
               hintStyle: TextStyle(
                 color: Colors.black,
                 fontSize: 18,
@@ -173,9 +155,50 @@ class _LoginPageState extends State<LoginPage> {
               },
             ),
           ),
+          Container(
+            height: 46,
+            margin: EdgeInsets.only(top: 20),
+            child: InkWell(
+              onTap: () {
+                _onClickCadastrar(context);
+              },
+              child: Text(
+                "Cadastre-se",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _validateLogin(String text) {
+    if (text.isEmpty) {
+      return "Informe o login";
+    }
+
+    return null;
+  }
+
+  String _validateSenha(String text) {
+    if (text.isEmpty) {
+      return "Informe a senha";
+    }
+    if (text.length <= 2) {
+      return "Senha precisa ter mais de 2 números";
+    }
+
+    return null;
+  }
+
+  _onClickCadastrar(context) {
+    pushReplacement(context, CadastroPage());
   }
 
   void _onClickLoginGoogle(context) async {
@@ -205,7 +228,8 @@ class _LoginPageState extends State<LoginPage> {
       _progress = true;
     });
 
-    final response = await LoginService.login(login, senha);
+    final service = FirebaseService();
+    final response = await service.login(login, senha);
 
     if (response.isOk()) {
       pushReplacement(context, HomePage());

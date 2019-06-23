@@ -1,5 +1,4 @@
 import 'package:carros/domain/services/firebase_service.dart';
-import 'package:carros/domain/user.dart';
 import 'package:carros/pages/login_page.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,7 +19,7 @@ class DrawerList extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final user = snapshot.data;
-                    return Text(user.displayName);
+                    return Text(user.displayName ?? user.email);
                   }
                   return Text("");
                 },
@@ -40,8 +39,9 @@ class DrawerList extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     final user = snapshot.data;
-                    return CircleAvatar(
-                        backgroundImage: NetworkImage(user.photoUrl));
+                    return user.photoUrl != null
+                    ? CircleAvatar(backgroundImage: NetworkImage(user.photoUrl))
+                    : FlutterLogo();
                   }
                   return Text("");
                 },
