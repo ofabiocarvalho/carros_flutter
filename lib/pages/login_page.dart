@@ -1,8 +1,12 @@
+import 'package:carros/domain/services/firebase_service.dart';
 import 'package:carros/domain/services/login_service.dart';
 import 'package:carros/pages/home_page.dart';
 import 'package:carros/utils/alerts.dart';
 import 'package:carros/utils/nav.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_auth_buttons/flutter_auth_buttons.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -10,89 +14,55 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _tLogin = TextEditingController(text: "facarvalho");
-  final _tSenha = TextEditingController(text: "fusion");
+  final _tLogin = TextEditingController(text: "ricardo");
+  final _tSenha = TextEditingController(text: "123");
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   var _progress = false;
 
+  FirebaseUser fUser;
+  var showForm = false;
+
+  void initState() {
+    super.initState();
+
+    FirebaseAuth.instance.currentUser().then((fUser){
+      setState(() {
+        this.fUser = fUser;
+        if(fUser != null) {
+          pushReplacement(context, HomePage());
+        } else {
+          showForm = true;
+        }
+      });
+    });
+
+    RemoteConfig.instance.then((remoteConfig){
+      remoteConfig.setConfigSettings(RemoteConfigSettings(debugMode: true));
+
+      try {
+        remoteConfig.fetch(expiration: const Duration(minutes: 1));
+        remoteConfig.activateFetched();
+      } catch(error) {
+        print("Remote Config: $error");
+      }
+
+      final mensagem = remoteConfig.getString("mensagem");
+
+      print('Mensagem: $mensagem');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Zanquiefs"),
+        title:  fUser != null ?  Text("Carros ${fUser.displayName}") : Text("Carros"),
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: _body(context),
-      ),
-    );
-  }
-
-  _body(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: ListView(
-        children: <Widget>[
-          TextFormField(
-            controller: _tLogin,
-            validator: _validateLogin,
-            keyboardType: TextInputType.text,
-            style: TextStyle(color: Colors.blue, fontSize: 25),
-            decoration: InputDecoration(
-                labelText: "Login",
-                labelStyle: TextStyle(color: Colors.black, fontSize: 25),
-                hintText: "Digite o seu login",
-                hintStyle: TextStyle(color: Colors.black45, fontSize: 18)),
-          ),
-          TextFormField(
-            controller: _tSenha,
-            validator: _validateSenha,
-            obscureText: true,
-            keyboardType: TextInputType.text,
-            style: TextStyle(color: Colors.blue, fontSize: 25),
-            decoration: InputDecoration(
-                labelText: "Senha",
-                labelStyle: TextStyle(color: Colors.black, fontSize: 25),
-                hintText: "Digite o seu login",
-                hintStyle: TextStyle(color: Colors.black45, fontSize: 18)),
-          ),
-          Container(
-            height: 50,
-            margin: EdgeInsets.only(top: 20),
-            child: RaisedButton(
-              color: Colors.blue,
-              child: _progress
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation(Colors.white),
-                    )
-                  : Text(
-                      "Login",
-                      style: TextStyle(color: Colors.white, fontSize: 25),
-                    ),
-              onPressed: () {
-                _onClickLogin(context);
-              },
-            ),
-          ),
-//          Container(
-//              margin: EdgeInsets.only(top: 20),
-//              child: Stack(
-//                children: <Widget>[
-//                  Container(
-//                    child: Image.asset("assets/images/zangief.jpg",
-//                        fit: BoxFit.contain),
-//                  ),
-//                  Container(
-//                    height: 100,
-//                    child: Image.asset(
-//                      "assets/images/sao-paulo-antigo.png",
-//                    ),
-//                  ),
-//                ],
-//              ))
-        ],
       ),
     );
   }
@@ -109,15 +79,119 @@ class _LoginPageState extends State<LoginPage> {
     if (text.isEmpty) {
       return "Informe a senha";
     }
-
-    if (text.length < 6) {
-      return "Senha precisa ter 6 caracteres";
+    if (text.length <= 2) {
+      return "Senha precisa ter mais de 2 números";
     }
 
     return null;
   }
 
-  _onClickLogin(BuildContext context) async {
+  _body(BuildContext context) {
+
+    if(!showForm) {
+      return Container(
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return Form(
+      key: _formKey,
+      child: ListView(
+        children: <Widget>[
+          TextFormField(
+            controller: _tLogin,
+            validator: _validateLogin,
+            keyboardType: TextInputType.text,
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 22,
+            ),
+            decoration: InputDecoration(
+              labelText: "Login",
+              labelStyle: TextStyle(
+                color: Colors.black,
+                fontSize: 22,
+              ),
+              hintText: "Digite o seu login",
+              hintStyle: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          TextFormField(
+            controller: _tSenha,
+            validator: _validateSenha,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            style: TextStyle(
+              color: Colors.blue,
+              fontSize: 22,
+            ),
+            decoration: InputDecoration(
+              labelText: "Senha",
+              labelStyle: TextStyle(
+                color: Colors.black,
+                fontSize: 22,
+              ),
+              hintText: "Digite a sua Senha",
+              hintStyle: TextStyle(
+                color: Colors.black,
+                fontSize: 18,
+              ),
+            ),
+          ),
+          Container(
+            height: 46,
+            margin: EdgeInsets.only(top: 20),
+            child: RaisedButton(
+              color: Colors.blue,
+              child: _progress
+                  ? CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation(Colors.white),
+              )
+                  : Text(
+                "Login",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                ),
+              ),
+              onPressed: () {
+                _onClickLogin(context);
+              },
+            ),
+          ),
+          Container(
+            height: 46,
+            margin: EdgeInsets.only(top: 20),
+            child: GoogleSignInButton(
+              onPressed: () {
+                _onClickLoginGoogle(context);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onClickLoginGoogle(context) async {
+    print("Google");
+
+    final service = FirebaseService();
+    final response = await service.loginGoogle();
+
+    if (response.isOk()) {
+      pushReplacement(context, HomePage());
+    } else {
+      alert(context, "Erro", response.msg);
+    }
+  }
+
+  void _onClickLogin(context) async {
     final login = _tLogin.text;
     final senha = _tSenha.text;
 
@@ -125,11 +199,11 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    print("Login: $login, senha: $senha");
+
     setState(() {
       _progress = true;
     });
-
-    print("Login: $login, senha: $senha");
 
     final response = await LoginService.login(login, senha);
 

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "348727380841",
+    "firebase_url": "https://carros-244519.firebaseio.com",
+    "project_id": "carros-244519",
+    "storage_bucket": "carros-244519.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348727380841:android:9e6b898ad0f15e25",
+        "android_client_info": {
+          "package_name": "br.com.ofsc.carros"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "348727380841-1c2t2seh2825rjlfhfvi752oggokcpup.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.ofsc.carros",
+            "certificate_hash": "059262b9fb3216da2da352a4cba856f9de40f2aa"
+          }
+        },
+        {
+          "client_id": "348727380841-k4qvbss4rjejr1rd9pppml7bo639miug.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA5Vl5Fc1BkgQ5htGP31yKct7pQazu2zJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "348727380841-k4qvbss4rjejr1rd9pppml7bo639miug.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "348727380841-qc7k7bbcrobb7cq6opovntniga1v71at.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "br.com.ofsc.carros"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,256 +1,82 @@
-import 'package:carros/domain/services/carro_service.dart';
+import 'package:carros/domain/carro.dart';
+import 'package:carros/drawer_list.dart';
+import 'package:carros/pages/carros_page.dart';
+import 'package:carros/pages/favoritos_page.dart';
+import 'package:carros/utils/nav.dart';
+import 'package:carros/utils/prefs.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+import 'carro_form_page.dart';
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin<HomePage> {
+  TabController tabController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    tabController = TabController(length: 4, vsync: this);
+
+    Prefs.getInt("tabIndex").then((idx){
+      tabController.index = idx;
+    });
+
+    tabController.addListener(() async {
+      int idx = tabController.index;
+
+      Prefs.setInt("tabIndex", idx);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Carros"),
+        bottom: TabBar(
+          controller: tabController,
+          tabs: [
+            Tab(
+              text: "Clássicos",
+              icon: Icon(Icons.directions_car),
+            ),
+            Tab(
+              text: "Esportivos",
+              icon: Icon(Icons.directions_car),
+            ),
+            Tab(
+              text: "Luxo",
+              icon: Icon(Icons.directions_car),
+            ),
+            Tab(
+              text: "Favoritos",
+              icon: Icon(Icons.favorite),
+            ),
+          ],
+        ),
       ),
-      body: Container(
-        padding: EdgeInsets.all(12),
-        child: _listView(),
+      body: TabBarView(
+        controller: tabController,
+        children: [
+          CarrosPage(TipoCarro.classicos),
+          CarrosPage(TipoCarro.esportivos),
+          CarrosPage(TipoCarro.luxo),
+          FavoritosPage(),
+        ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: () {
+          push(context, CarroFormPage());
+        },
+      ),
+      drawer: DrawerList(),
     );
-  }
-
-  _listView() {
-    final carros = CarroService.getCarros();
-
-    return ListView.builder(
-        itemCount: carros.length,
-        itemBuilder: (ctx, idx) {
-          final c = carros[idx];
-
-          return Container(
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Center(
-                      child: Image.network(
-                        c.urlFoto,
-                      ),
-                    ),
-                    Text(
-                      c.nome,
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: Colors.black,
-                      ),
-                    ),
-                    Text(
-                      "Descrição...",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                    ButtonTheme.bar(
-                      // make buttons use the appropriate styles for cards
-                      child: ButtonBar(
-                        children: <Widget>[
-                          FlatButton(
-                            child: const Text('BUY TICKETS'),
-                            onPressed: () {
-                              /* ... */
-                            },
-                          ),
-                          FlatButton(
-                            child: const Text('LISTEN'),
-                            onPressed: () {
-                              /* ... */
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        });
-  }
-
-  _listViewLayout3() {
-    final carros = CarroService.getCarros();
-
-    return ListView.builder(
-        itemCount: carros.length,
-        itemBuilder: (ctx, idx) {
-          final c = carros[idx];
-
-          return Container(
-            child: Card(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Stack(
-                    alignment: Alignment.topCenter,
-                    children: <Widget>[
-                      Image.network(c.urlFoto),
-                      Container(
-                        color: Colors.black45,
-                        child: Center(
-                          child: Text(
-                            c.nome,
-                            style: TextStyle(
-                              fontSize: 25,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  ButtonTheme.bar(
-                    // make buttons use the appropriate styles for cards
-                    child: ButtonBar(
-                      children: <Widget>[
-                        FlatButton(
-                          child: const Text('BUY TICKETS'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                        FlatButton(
-                          child: const Text('LISTEN'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-  }
-
-  _listViewLayout2() {
-    final carros = CarroService.getCarros();
-
-    return ListView.builder(
-        itemCount: carros.length,
-        itemBuilder: (ctx, idx) {
-          final c = carros[idx];
-
-          return Container(
-            height: 250,
-            child: Card(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    flex: 9,
-                    child: Image.network(
-                      c.urlFoto,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Container(
-                      color: Colors.grey,
-                      child: Center(
-                        child: Text(
-                          c.nome,
-                          style: TextStyle(
-                            fontSize: 25,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ButtonTheme.bar(
-                    // make buttons use the appropriate styles for cards
-                    child: ButtonBar(
-                      children: <Widget>[
-                        FlatButton(
-                          child: const Text('BUY TICKETS'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                        FlatButton(
-                          child: const Text('LISTEN'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
-  }
-
-  _listViewLayout1() {
-    final carros = CarroService.getCarros();
-
-    return ListView.builder(
-        itemCount: carros.length,
-        itemBuilder: (ctx, idx) {
-          final c = carros[idx];
-
-          return Container(
-            height: 150,
-            child: Card(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  ListTile(
-                    leading: Image.network(
-                      c.urlFoto,
-                      width: 150,
-                    ),
-                    title: Text(
-                      c.nome,
-                      style: TextStyle(
-                        fontSize: 25,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "descrição",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  ButtonTheme.bar(
-                    // make buttons use the appropriate styles for cards
-                    child: ButtonBar(
-                      children: <Widget>[
-                        FlatButton(
-                          child: const Text('BUY TICKETS'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                        FlatButton(
-                          child: const Text('LISTEN'),
-                          onPressed: () {
-                            /* ... */
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        });
   }
 }
