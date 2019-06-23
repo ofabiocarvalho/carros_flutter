@@ -1,8 +1,12 @@
+import 'dart:io';
+
 import 'package:carros/domain/response.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:path/path.dart' as path;
 
 String firebaseUserUid;
 
@@ -93,4 +97,17 @@ class FirebaseService {
       return Response(false,"Não foi possível criar um usuário.");
     }
   }
+
+  static Future<String> uploadFirebaseStorage(File file) async {
+    print("Upload to Storage $file");
+    String fileName = path.basename(file.path);
+    final storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+    final StorageTaskSnapshot task = await storageRef.putFile(file).onComplete;
+    final String urlFoto = await task.ref.getDownloadURL();
+    print("Storage > $urlFoto");
+    return urlFoto;
+  }
+
+
 }
