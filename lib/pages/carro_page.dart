@@ -1,6 +1,7 @@
 import 'package:carros/domain/carro.dart';
 import 'package:carros/domain/db/carro_db.dart';
 import 'package:carros/domain/services/carro_service.dart';
+import 'package:carros/domain/services/favoritos_service.dart';
 import 'package:carros/pages/carro_form_page.dart';
 import 'package:carros/pages/mapa_page.dart';
 import 'package:carros/pages/video_page.dart';
@@ -26,7 +27,9 @@ class _CarroPageState extends State<CarroPage> {
   void initState() {
     super.initState();
 
-    CarroDB.getInstance().exists(carro).then((b) {
+    final service = FavoritosService();
+
+    service.exists(carro).then((b) {
       if(b) {
         setState(() {
           _isFavorito = b;
@@ -160,18 +163,21 @@ class _CarroPageState extends State<CarroPage> {
   }
 
   Future _onClickFavoritar(context, carro) async {
-    final db = CarroDB.getInstance();
+//    final db = CarroDB.getInstance();
+//
+//    final exists = await db.exists(carro);
+//
+//    if (exists) {
+//      await db.deleteCarro(carro.id);
+//    } else {
+//      await db.saveCarro(carro);
+//    };
 
-    final exists = await db.exists(carro);
-
-    if (exists) {
-      await db.deleteCarro(carro.id);
-    } else {
-      await db.saveCarro(carro);
-    };
+    final service = FavoritosService();
+    final exists = await service.favoritar(carro);
 
     setState(() {
-      _isFavorito = !exists;
+      _isFavorito = exists;
     });
   }
 
