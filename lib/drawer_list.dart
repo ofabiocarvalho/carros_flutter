@@ -1,5 +1,6 @@
 import 'package:carros/domain/services/firebase_service.dart';
 import 'package:carros/pages/login_page.dart';
+import 'package:carros/pages/site_page.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +78,7 @@ class DrawerList extends StatelessWidget {
             ),
             ListTile(
               onTap: () {
-                print("Ajuda");
+                push(context, SitePage());
               },
               title: Text("Visite o site"),
               leading: Icon(Icons.web),
