@@ -1,12 +1,14 @@
+import 'package:carros/bus/event_bus.dart';
 import 'package:carros/domain/carro.dart';
 import 'package:carros/drawer_list.dart';
+import 'package:carros/pages/carro_form_page.dart';
 import 'package:carros/pages/carros_page.dart';
 import 'package:carros/pages/favoritos_page.dart';
+import 'package:carros/search/carros_search.dart';
+import 'package:carros/utils/alerts.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:carros/utils/prefs.dart';
 import 'package:flutter/material.dart';
-
-import 'carro_form_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -18,12 +20,12 @@ class _HomePageState extends State<HomePage>
   TabController tabController;
 
   @override
-  void initState() {
+  initState() {
     super.initState();
 
     tabController = TabController(length: 4, vsync: this);
 
-    Prefs.getInt("tabIndex").then((idx){
+    Prefs.getInt("tabIndex").then((idx) {
       tabController.index = idx;
     });
 
@@ -39,6 +41,12 @@ class _HomePageState extends State<HomePage>
     return Scaffold(
       appBar: AppBar(
         title: Text("Carros"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.search),
+            onPressed: _onClickSearch,
+          )
+        ],
         bottom: TabBar(
           controller: tabController,
           tabs: [
@@ -73,10 +81,29 @@ class _HomePageState extends State<HomePage>
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
-          push(context, CarroFormPage());
+          _onClickAdd();
         },
       ),
       drawer: DrawerList(),
     );
+  }
+
+  void _onClickSearch() async {
+    final carro = await showSearch<Carro>(
+        context: context, delegate: CarrosSearch());
+    if (carro != null) {
+      alert(context, "Busca", carro.nome);
+    }
+  }
+
+  void _onClickAdd() async {
+    push(context, CarroFormPage());
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    //eventBus.close();
   }
 }

@@ -63,6 +63,6 @@ class Carro {
 
   @override
   String toString() {
-    return "Carro[$id]: $nome";
+    return "Carro[$id]: $nome - $tipo";
   }
 }

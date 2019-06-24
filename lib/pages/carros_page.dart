@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:carros/bus/event_bus.dart';
+import 'package:carros/bus/events.dart';
 import 'package:carros/domain/carro.dart';
 import 'package:carros/domain/services/carros_bloc.dart';
 import 'package:carros/widgets/carros_listView.dart';
@@ -19,20 +21,40 @@ class _CarrosPageState extends State<CarrosPage>
     with AutomaticKeepAliveClientMixin<CarrosPage> {
   final _bloc = CarrosBloc();
 
+  StreamSubscription subscription;
+
   get tipo => widget.tipo;
 
   @override
   bool get wantKeepAlive => true;
 
+  ScrollController scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
 
-    _bloc.fetch(tipo);
+    _bloc.fetch(tipo, false);
+
+    // Event Bus
+    subscription = eventBus.stream.listen((event) {
+      print(">> event $event ");
+      _onEvent(event);
+    });
+  }
+
+  void _onEvent(event) {
+    if(event is NovoCarroEvent) {
+      Carro c = event.carro;
+      if(c.tipo == tipo) {
+        _bloc.fetch(tipo, true);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+
     return RefreshIndicator(
       onRefresh: _onRefresh,
       child: Container(
@@ -41,27 +63,31 @@ class _CarrosPageState extends State<CarrosPage>
           stream: _bloc.stream,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              final List<Carro> carros = snapshot.data;
+              final CarrosData carrosData = snapshot.data;
 
-              return CarrosListView(carros);
+              final List<Carro> carros = carrosData.carros;
+
+              return CarrosListView(carros, scrollController: scrollController,scrollToTheEnd: carrosData.scrollToTheEnd);
             } else if (snapshot.hasError) {
               final error = snapshot.error;
 
-              return ListView(
-                shrinkWrap: true,
-                children: <Widget>[
-                  Text(
-                    error is SocketException
-                        ? "Conexão indisponível, por favor verifique sua internet."
-                        : "Ocorreu um erro ao buscar a lista de carros",
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 26,
-                      fontStyle: FontStyle.italic,
-                    ),
-                    textAlign: TextAlign.center,
-                  )
-                ],
+              return Center(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    Text(
+                      error is SocketException
+                          ? "Conexão indisponível, por favor verifique sua internet."
+                          : "Ocorreu um erro ao buscar a lista de carros",
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 26,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    )
+                  ],
+                ),
               );
             } else {
               return Center(
@@ -76,13 +102,13 @@ class _CarrosPageState extends State<CarrosPage>
 
   Future<void> _onRefresh() {
     print("onRefresh");
-    return _bloc.fetch(tipo);
+    return _bloc.fetch(tipo, false);
   }
 
   @override
   void dispose() {
     super.dispose();
 
-    _bloc.close();
+    subscription?.cancel();
   }
 }

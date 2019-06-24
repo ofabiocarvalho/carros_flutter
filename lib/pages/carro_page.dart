@@ -1,10 +1,10 @@
+import 'dart:async';
+
 import 'package:carros/domain/carro.dart';
-import 'package:carros/domain/db/carro_db.dart';
 import 'package:carros/domain/services/carro_service.dart';
 import 'package:carros/domain/services/favoritos_service.dart';
 import 'package:carros/pages/carro_form_page.dart';
 import 'package:carros/pages/mapa_page.dart';
-import 'package:carros/pages/video_page.dart';
 import 'package:carros/utils/alerts.dart';
 import 'package:carros/utils/nav.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,10 @@ class CarroPage extends StatefulWidget {
 }
 
 class _CarroPageState extends State<CarroPage> {
-  get carro => widget.carro;
+  var loremText;
+
+  Carro get carro => widget.carro;
+
   bool _isFavorito = false;
 
   @override
@@ -29,17 +32,26 @@ class _CarroPageState extends State<CarroPage> {
 
     final service = FavoritosService();
 
-    service.exists(carro).then((b) {
+    service.exists(carro).then((b){
       if(b) {
         setState(() {
           _isFavorito = b;
         });
       }
     });
+
+//    CarroDB.getInstance().exists(carro).then((b){
+//      if(b) {
+//        setState(() {
+//          _isFavorito = b;
+//        });
+//      }
+//    });
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text(carro.nome),
@@ -47,14 +59,12 @@ class _CarroPageState extends State<CarroPage> {
           IconButton(
             icon: Icon(Icons.place),
             onPressed: () {
-              _ClickMap(context);
+              _onClickMapa(context);
             },
           ),
           IconButton(
             icon: Icon(Icons.videocam),
-            onPressed: () {
-              _onClickVideo(context);
-            },
+            onPressed: () { _onClickVideo(context); },
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -73,7 +83,7 @@ class _CarroPageState extends State<CarroPage> {
                 PopupMenuItem(
                   value: "Share",
                   child: Text("Share"),
-                ),
+                )
               ];
             },
           )
@@ -87,14 +97,14 @@ class _CarroPageState extends State<CarroPage> {
     return ListView(
       padding: EdgeInsets.all(16),
       children: <Widget>[
-    Image.network(carro.urlFoto ?? "http://3.bp.blogspot.com/-rFZxeswg9zM/UZ6qPQiZOZI/AAAAAAAAK2A/Szg_xcZ_0cI/s1600/QT.jpg"),
-      _carro(),
-      _descricao(),
+        Image.network(carro.urlFoto ?? "http://www.livroandroid.com.br/livro/carros/esportivos/Ferrari_FF.png"),
+        _bloco1(),
+        _bloco2(),
       ],
     );
   }
 
-  _carro() {
+  _bloco1() {
     return Row(
       children: <Widget>[
         Expanded(
@@ -108,14 +118,12 @@ class _CarroPageState extends State<CarroPage> {
               Text(
                 carro.tipo,
                 style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-              ),
+              )
             ],
           ),
         ),
         InkWell(
-          onTap: () {
-            _onClickFavoritar(context, carro);
-          },
+          onTap: () { _onClickFavorito(context,carro); },
           child: Icon(
             Icons.favorite,
             color: _isFavorito ? Colors.red : Colors.grey,
@@ -133,27 +141,32 @@ class _CarroPageState extends State<CarroPage> {
     );
   }
 
-  _descricao() {
-    Future future = CarroService.getLoremIpsim();
-
+  _bloco2() {
     return Container(
       padding: EdgeInsets.only(top: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(carro.desc,
+          Text(
+            carro.desc,
             style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold
-            ),),
-          SizedBox(height: 10,),
-          FutureBuilder(
-            future: future,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          SizedBox(
+            height: 10,
+          ),
+          FutureBuilder<String>(
+            future: loremText != null ? Future(() => loremText) : CarroService.getLoremIpsim(),
             builder: (context, snapshot) {
-              return Center(
-                child: snapshot.hasData ?
-                Text(snapshot.data) :
-                CircularProgressIndicator(),
+              if(snapshot.hasData) {
+                loremText = snapshot.data;
+              }
+              return snapshot.hasData
+                  ? Text(loremText)
+                  : Center(
+                child: CircularProgressIndicator(),
               );
             },
           )
@@ -162,31 +175,37 @@ class _CarroPageState extends State<CarroPage> {
     );
   }
 
-  Future _onClickFavoritar(context, carro) async {
-//    final db = CarroDB.getInstance();
-//
-//    final exists = await db.exists(carro);
-//
-//    if (exists) {
-//      await db.deleteCarro(carro.id);
-//    } else {
-//      await db.saveCarro(carro);
-//    };
+  Future _onClickFavorito(context, carro) async {
 
     final service = FavoritosService();
-    final exists = await service.favoritar(carro);
+    final b = await service.favoritar(carro);
 
     setState(() {
-      _isFavorito = exists;
+      _isFavorito = b;
     });
+
+    /*final db = CarroDB.getInstance();
+
+    final exists = await db.exists(carro);
+
+    if(exists) {
+      db.deleteCarro(carro.id);
+    } else {
+      int id = await db.saveCarro(carro);
+
+      print("Carro salvo $id");
+    }
+
+    setState(() {
+      _isFavorito = !exists;
+    });*/
   }
 
   void _onClickPopupMenu(String value) {
     print("_onClickPopupMenu > $value");
-
-    if ("Editar" == value) {
-      push(context, CarroFormPage(carro: carro));
-    } else if ("Deletar" == value) {
+    if("Editar" == value) {
+      push(context, CarroFormPage(carro:carro));
+    } else if("Deletar" == value) {
       deletar();
     }
   }
@@ -194,25 +213,29 @@ class _CarroPageState extends State<CarroPage> {
   void deletar() async {
 
     final response = await CarroService.deletar(carro.id);
-    if(response.isOk()){
-      pop(context);
-    }else{
-      alert(context, "Erro", response.msg);
+    if(response.isOk()) {
+      pop(context, carro);
+    } else {
+      alert(context,"Erro", response.msg);
     }
-
   }
 
   void _onClickVideo(context) {
     if(carro.urlVideo != null && carro.urlVideo.isNotEmpty) {
-      //launch(carro.urlVideo);
+      launch(carro.urlVideo);
 
-      push(context, VideoPage(carro));
+      //push(context, VideoPage(carro));
     } else {
       alert(context, "Erro", "Este carro não possui nenhum vídeo");
     }
   }
 
-  void _ClickMap(BuildContext context) {
-    push(context, MapaPage(carro));
+  void _onClickMapa(context) {
+    if(carro.latitude != null && carro.longitude != null) {
+
+      push(context, MapaPage(carro));
+    } else {
+      alert(context, "Erro", "Este carro não possui Lat/Lng da fábrica.");
+    }
   }
 }

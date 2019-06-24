@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-push(context, Widget page) {
-  Navigator.push(context, MaterialPageRoute(builder: (context){
+push(BuildContext context, Widget page) {
+  return Navigator.push(context, MaterialPageRoute(builder: (context){
     return page;
   }));
 }
 
-pushReplacement(context, Widget page) {
-  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
+pushReplacement(BuildContext context, Widget page) {
+  return Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
     return page;
   }));
 }
 
-pop(BuildContext context) {
-  Navigator.pop(context);
+pop<T extends Object>(context, [ T result ]) {
+  Navigator.pop(context, result);
 }

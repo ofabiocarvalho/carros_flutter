@@ -1,15 +1,14 @@
 import 'dart:io';
 
+import 'package:carros/bus/event_bus.dart';
+import 'package:carros/bus/events.dart';
 import 'package:carros/domain/carro.dart';
-import 'package:carros/domain/response.dart';
 import 'package:carros/domain/services/carro_service.dart';
-import 'package:carros/domain/services/firebase_service.dart';
 import 'package:carros/utils/alerts.dart';
 import 'package:carros/utils/nav.dart';
-import 'package:image_picker/image_picker.dart';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class CarroFormPage extends StatefulWidget {
   final Carro carro;
@@ -123,16 +122,16 @@ class _CarroFormPageState extends State<CarroFormPage> {
               color: Colors.blue,
               child: _showProgress
                   ? CircularProgressIndicator(
-                      valueColor:
-                          new AlwaysStoppedAnimation<Color>(Colors.white),
-                    )
+                valueColor:
+                new AlwaysStoppedAnimation<Color>(Colors.white),
+              )
                   : new Text(
-                      "Salvar",
-                      style: new TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                      ),
-                    ),
+                "Salvar",
+                style: new TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                ),
+              ),
               onPressed: () {
                 _onClickSalvar(context);
               },
@@ -144,25 +143,32 @@ class _CarroFormPageState extends State<CarroFormPage> {
   }
 
   _headerFoto() {
-    if (fileCamera != null) {
+    if(fileCamera != null) {
       return InkWell(
         child: Image.file(
           fileCamera,
           height: 150,
-        ),
-        onTap: _onClickFoto,
+        ),onTap: _onClickFoto,
       );
     }
 
     return InkWell(
-      child:  carro != null && carro.urlFoto != null
+      child: carro != null && carro.urlFoto != null
           ? Image.network(carro.urlFoto)
           : Image.asset(
         "assets/images/camera.png",
         height: 150,
-      ),
-      onTap: _onClickFoto,
+      ),onTap: _onClickFoto,
     );
+  }
+
+  _onClickFoto() async {
+    fileCamera = await ImagePicker.
+    pickImage(source: ImageSource.camera);
+
+    setState(() {
+    });
+
   }
 
   _radioTipo() {
@@ -247,8 +253,13 @@ class _CarroFormPageState extends State<CarroFormPage> {
 
     final response = await CarroService.salvar(c, fileCamera);
     if (response.isOk()) {
-      //alert(context, "Carro salvo", response.msg, callback: () => pop(context));
-      alert(context, "Carro salvo", response.msg);
+
+      alert(context, "Carro salvo", response.msg, callback: () {
+        pop(context);
+
+        eventBus.post(NovoCarroEvent(c));
+
+      });
     } else {
       alert(context, "Erro", response.msg);
     }
@@ -256,13 +267,5 @@ class _CarroFormPageState extends State<CarroFormPage> {
     setState(() {
       _showProgress = false;
     });
-  }
-
-  void _onClickFoto() async {
-    fileCamera = await ImagePicker.pickImage(source: ImageSource.camera);
-
-    FirebaseService.uploadFirebaseStorage(fileCamera);
-
-    setState(() {});
   }
 }
